@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commeow Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 1rem;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-box {
+      width: 90%;
+      max-width: 400px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    #message-list {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 0.5rem;
+      list-style: none;
+      padding: 0;
+    }
+    #message-input {
+      display: flex;
+      width: 100%;
+    }
+    #message-input input {
+      flex-grow: 1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    #message-input button {
+      margin-left: 0.5rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    li {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f8f8f8;
+    }
+    #nickname-input {
+      width: 400px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    #nickname-input input {
+      flex-grow: 1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-right: 0.5rem;
+    }
+    #nickname-input button {
+      margin-left: 0.5rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="chat-container">
+  <div class="chat-box">
+    <ul id="message-list"></ul>
+    <div id="message-input">
+      <input type="text" id="inputMessage" placeholder="메시지를 입력하세요...">
+      <button onclick="sendMessage()">전송</button>
+    </div>
+  </div>
+  <div id="nickname-input">
+    <input type="text" id="username" placeholder="닉네임을 입력하세요...">
+    <button id="confirmUsername" onclick="confirmUsername()">완료</button>
+  </div>
+</div>
+<script>
+  const chatWebSocket = new WebSocket('ws://' + location.host + '/ws-chat');
+  const inputMessage = document.getElementById('inputMessage');
+  const messageList = document.getElementById('message-list');
+
+  chatWebSocket.onmessage = function(event) {
+    const li = document.createElement('li');
+    li.innerText = event.data;
+    messageList.appendChild(li);
+  };
+
+  chatWebSocket.onclose = function(event) {
+    alert('웹소켓이 닫혔습니다! 다시 연결하려면 페이지를 새로고침 해주세요.');
+  };
+
+  function sendMessage() {
+    if (inputMessage.value.trim() === '') {
+      return;
+    }
+
+    // chatWebSocket.send(inputMessage.value);
+    const username = document.getElementById("username").value.trim();
+    const messageObject = {
+      username: username,
+      message: inputMessage.value,
+    };
+    chatWebSocket.send(JSON.stringify(messageObject));
+    inputMessage.value = '';
+  }
+
+  function confirmUsername() {
+    const usernameInput = document.getElementById("username");
+    const confirmButton = document.getElementById("confirmUsername");
+
+    if (usernameInput.value.trim() !== '') {
+      usernameInput.disabled = true;
+      confirmButton.disabled = true;
+      confirmButton.style.backgroundColor = "gray";
+    }
+  }
+</script>
+</body>
+</html>
